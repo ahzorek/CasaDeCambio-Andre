@@ -8,8 +8,11 @@
 </head>
 
 <body>
+  <select name="nm_moeda" id="moeda">
 
+  </select>
   <script>
+    const currSelect = document.querySelector('#moeda')
 
     function getCurrencyList() {
       //AJAX - Fazer uma requisição HTTPs / Consumo de API
@@ -22,7 +25,9 @@
 
       xhr.addEventListener("load", function () {
         let resposta = xhr.responseText
-        logCurrencies(resposta)
+        let data = JSON.parse(resposta)
+
+        createCurrOptions(data.value)
 
       })
 
@@ -30,13 +35,15 @@
 
     }
 
+    function createCurrOptions(currencies) {
+      currencies.map(curr => {
+        const option = document.createElement('option')
+        option.value = curr.simbolo
+        option.innerHTML = curr.nomeFormatado
 
+        currSelect.appendChild(option)
+      })
 
-
-    function logCurrencies(curr) {
-      let currObj = JSON.parse(curr) //Convertendo um JSON para JSObject
-
-      console.log(currObj.value)
     }
 
     getCurrencyList()
