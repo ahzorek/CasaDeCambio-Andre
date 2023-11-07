@@ -2,53 +2,69 @@
 <html lang="pt-br">
 
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Casa de Câmbio</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
+  <link rel="stylesheet" href="styles/style.css" />
+  <title>pyramidx</title>
+  <script src="js/animations.js" defer></script>
+  <script src="js/main.js" defer></script>
+
+
 </head>
 
 <body>
-  <select name="nm_moeda" id="moeda">
-    <option value="null" selected disabled> Selecione uma opção</option>
-  </select>
-  <script>
-    const currSelect = document.querySelector('#moeda')
+  <header>
+    <!-- camada video atras -->
+    <div class="back-layer">
+      <div class="col"></div>
+      <div class="col icon-wrapper">
+        <div id="videoContainer">
+          <video class="video" autoplay="autoplay" muted="muted" loop="loop" id="bg"
+            src="https://res.cloudinary.com/mozdev/video/upload/v1538461893/videos/hero-video.mp4" />
+        </div>
+      </div>
+    </div>
+    <!-- camada video atras -->
 
-    function getCurrencyList() {
-      //AJAX - Fazer uma requisição HTTPs / Consumo de API
-      var xhr = new XMLHttpRequest()
+    <!-- icone camada frente -->
+    <section class="front-layer">
+      <div class="col">
+      </div>
+      <div class="col icon-wrapper">
+        <svg class="clip-bg" width="703" height="615" viewBox="0 0 703 615" xmlns="http://www.w3.org/2000/svg">
+          <path
+            d="M565.245 337.624C553.14 316.629 522.878 316.629 510.773 337.624L378.084 567.761C365.979 588.756 381.11 615 405.32 615H670.698C694.908 615 710.039 588.756 697.934 567.761L565.245 337.624Z" />
+          <path
+            d="M191.422 337.624C179.317 316.629 149.054 316.629 136.949 337.624L4.26044 567.761C-7.84452 588.756 7.28664 615 31.4966 615H296.874C321.084 615 336.216 588.756 324.111 567.761L191.422 337.624Z" />
+          <path
+            d="M378.257 15.7463C366.186 -5.24871 336.009 -5.24878 323.938 15.7462L191.624 245.883C179.553 266.878 194.642 293.122 218.783 293.122H483.411C507.553 293.122 522.641 266.878 510.571 245.883L378.257 15.7463Z" />
+        </svg>
+      </div>
+    </section>
+    <!-- icone camada frente -->
 
-      const url = `https://olinda.bcb.gov.br/olinda/servico/PTAX/versao/v1/odata/Moedas?$top=100&$skip=0&$format=json&$select=simbolo,nomeFormatado`
+    <section class="full-h-section grid-2">
+      <div class="col title-wrapper">
+        <h1>
+          welcome to <span class="bold">pyramidx</span>
+        </h1>
+      </div>
+      <div class="col">
+      </div>
 
-      xhr.open("GET", url)
+
+    </section>
+  </header>
+
+  <section class="full-h-section">
+    <select name="nm_moeda" id="moeda">
+      <option value="null" selected disabled> Selecione uma opção</option>
+    </select>
+  </section>
 
 
-      xhr.addEventListener("load", function () {
-        let resposta = xhr.responseText
-        let data = JSON.parse(resposta)
 
-        createCurrOptions(data.value)
 
-      })
-
-      xhr.send()
-
-    }
-
-    function createCurrOptions(currencies) {
-      currencies.map(curr => {
-        const option = document.createElement('option')
-        option.value = curr.simbolo
-        option.innerHTML = curr.nomeFormatado
-
-        currSelect.appendChild(option)
-      })
-
-    }
-
-    getCurrencyList()
-
-  </script>
 </body>
 
 </html>
