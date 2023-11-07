@@ -1,23 +1,30 @@
+let maxScroll
+
 document.addEventListener('DOMContentLoaded', () => {
   console.log('dom has loaded');
 
-  const bodyRect = document.body.getBoundingClientRect()
-  const firstFold = document.querySelector('.back-layer').getBoundingClientRect()
   const mainIcon = document.querySelector('.clip-bg')
-  console.log('BODY:::', bodyRect);
-  console.log('FIRST FOLD:::', firstFold);
-
-  console.log('space to scroll ===', bodyRect.height - firstFold.height);
-
-  const maxScroll = bodyRect.height - firstFold.height
+  maxScroll = window.innerHeight
 
   document.addEventListener('scroll', e => {
+    const headerBlock = document.querySelectorAll('.header-block')
     const scrolled = convertToPercentage(window.scrollY, maxScroll)
     const iconSize = Math.round(convertFromPercentage(scrolled))
-    mainIcon.setAttribute('style', `transform: scale(${iconSize}%);`)
+    if (scrolled <= 100) {
+      mainIcon.setAttribute('style', `transform: scale(${iconSize}%);`)
+      headerBlock.forEach(block => {
+        block.setAttribute('style', `transform: translateY(-${scrolled}%)`)
+      })
+    } else {
+
+    }
     // console.log('% icon', scrolled);
   })
 
+})
+
+window.addEventListener('resize', e => {
+  maxScroll = window.innerHeight
 })
 
 

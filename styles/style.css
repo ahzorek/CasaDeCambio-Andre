@@ -1,3 +1,16 @@
+@font-face {
+  font-family: "Geist";
+  src: url("../assets/GeistVF.woff2") format("woff2 supports variations"),
+       url("../assets/GeistVF.ttf") format("ttf-variations");
+  font-weight: 100 1000;
+}
+/* @font-face {
+  font-family: "GeistMono";
+  src: url("../assets/GeistMonoVF.woff2") format("woff2 supports variations"),
+       url("../assets/GeistMonoVF.ttf") format("ttf-variations");
+  font-weight: 100 1000;
+} */
+
 :root {
   --text: rgb(248, 248, 248);
   --background: rgb(11, 11, 11);
@@ -12,6 +25,7 @@ html {
   font-weight: 500;
   background-color: black;
   color: var(--text);
+  scroll-behavior: smooth;
 }
 
 body {
@@ -19,18 +33,25 @@ body {
   padding: 0;
 }
 
+.sticky-wrapper {
+  height: 200vh;
+  height: 200svh;
+}
+
+.sticky-consumer{
+  height: 100svh;
+  position: sticky;
+  top: 0;
+}
+
 header {
   position: relative;
-  overflow: hidden;
-  max-width: 1400px;
   margin: 0 auto;
-
 }
 
 .back-layer {
-  max-width: 1400px;
   margin: 0 auto;
-  position: fixed;
+  position: absolute;
   display: grid;
   grid-template-columns: 1fr 1fr;
   place-items: center;
@@ -48,7 +69,8 @@ header {
   inset: 0;
   content: "";
   mix-blend-mode: hard-light;
-  background: rgb(196 255 97 / .6);
+  background: rgb(196 255 97 / .3);
+  margin-bottom: 1rem;
 }
 
 #videoContainer video {
@@ -59,7 +81,8 @@ header {
 }
 
 .front-layer {
-  position: fixed;
+  width: 100%;
+  position: absolute;
   min-height: 100vh;
   z-index: -98;
   display: grid;
@@ -72,7 +95,7 @@ header {
 .icon-wrapper {
   display: flex;
   place-items: center;
-  margin-bottom: -50px;
+  /* margin-bottom: -50px; */
   overflow: hidden;  
 }
 
@@ -84,30 +107,44 @@ header {
 }
 
 .title-wrapper {
+  max-width: 1400px;
+  margin: 0 auto;
   display: flex;
-  padding: 4rem;
   place-items: center;
 }
 
 .title-wrapper h1 {
-  font-size: 96px;
+  font-weight: 500;
+  font-size: 6rem;
+}
+
+.title-wrapper p {
+  /* font-family: monospace; */
+  font-size: 1.2rem;
+  line-height: 1.65;
+  max-width: 35ch;
+  letter-spacing: 1.05;
 }
 
 
 /* util classes */
 .full-h-section{
-  min-height: 100vh;
-  min-height: 100svh;
-  /* border: 2px greenyellow dotted; */
+  height: 100vh;
+  height: 90svh;
+  border: 2px red dotted;
 }
 
 .grid-2{
   display: grid;
-  grid-template-columns: 2fr 2fr;
+  grid-template-columns: 1fr 1fr;
 }
 
 .bold {
   font-weight: 800;
+}
+
+.italic {
+  font-style: italic;
 }
 
 .col {

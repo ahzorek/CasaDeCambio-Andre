@@ -13,54 +13,74 @@
 </head>
 
 <body>
-  <header>
-    <!-- camada video atras -->
-    <div class="back-layer">
-      <div class="col"></div>
-      <div class="col icon-wrapper">
-        <div id="videoContainer">
-          <video class="video" autoplay="autoplay" muted="muted" loop="loop" id="bg"
-            src="https://res.cloudinary.com/mozdev/video/upload/v1538461893/videos/hero-video.mp4" />
+  <div class="sticky-wrapper">
+    <div class="sticky-consumer">
+      <header>
+        <!-- camada video atras -->
+        <div class="back-layer">
+          <div class="col"></div>
+          <div class="col icon-wrapper">
+            <div id="videoContainer">
+              <video class="video" autoplay muted loop id="bg-video"
+                src="https://res.cloudinary.com/djmijrwuw/video/upload/v1699331961/ehmnkb9wgox8rauuomjl.mp4" />
+            </div>
+          </div>
         </div>
+        <!-- camada video atras -->
+
+        <!-- icone camada frente -->
+        <div class="front-layer">
+          <div class="col">
+          </div>
+          <div class="col icon-wrapper">
+            <svg class="clip-bg" width="703" height="615" viewBox="0 0 703 615" xmlns="http://www.w3.org/2000/svg">
+              <path
+                d="M565.245 337.624C553.14 316.629 522.878 316.629 510.773 337.624L378.084 567.761C365.979 588.756 381.11 615 405.32 615H670.698C694.908 615 710.039 588.756 697.934 567.761L565.245 337.624Z" />
+              <path
+                d="M191.422 337.624C179.317 316.629 149.054 316.629 136.949 337.624L4.26044 567.761C-7.84452 588.756 7.28664 615 31.4966 615H296.874C321.084 615 336.216 588.756 324.111 567.761L191.422 337.624Z" />
+              <path
+                d="M378.257 15.7463C366.186 -5.24871 336.009 -5.24878 323.938 15.7462L191.624 245.883C179.553 266.878 194.642 293.122 218.783 293.122H483.411C507.553 293.122 522.641 266.878 510.571 245.883L378.257 15.7463Z" />
+            </svg>
+          </div>
+        </div>
+        <!-- icone camada frente -->
+      </header>
+
+      <div class="full-h-section grid-2 title-wrapper header-block">
+        <div class="col">
+          <h1>welcome to <span class="bold">pyramidx</span></h1>
+          <p>Where irresponsible greed meets top tier financial malpractices</p>
+        </div>
+        <div class="col">
+        </div>
+
+
       </div>
+      <div class="full-h-section grid-2 title-wrapper header-block">
+        <div class="col">
+          <p>Tired of financial institutions that promise <span class="italic">stability</span> but deliver more drama
+            than a bad soap opera? Enter
+            <span class="bold">pyramidx
+              Financial Solutions</span>, where we specialize in the art of financial insecurity. It's like a
+            rollercoaster for
+            your money.
+            Without the safety harness.
+          </p>
+        </div>
+        <div class="col">
+        </div>
+
+
+      </div>
+
     </div>
-    <!-- camada video atras -->
+  </div>
 
-    <!-- icone camada frente -->
-    <section class="front-layer">
-      <div class="col">
-      </div>
-      <div class="col icon-wrapper">
-        <svg class="clip-bg" width="703" height="615" viewBox="0 0 703 615" xmlns="http://www.w3.org/2000/svg">
-          <path
-            d="M565.245 337.624C553.14 316.629 522.878 316.629 510.773 337.624L378.084 567.761C365.979 588.756 381.11 615 405.32 615H670.698C694.908 615 710.039 588.756 697.934 567.761L565.245 337.624Z" />
-          <path
-            d="M191.422 337.624C179.317 316.629 149.054 316.629 136.949 337.624L4.26044 567.761C-7.84452 588.756 7.28664 615 31.4966 615H296.874C321.084 615 336.216 588.756 324.111 567.761L191.422 337.624Z" />
-          <path
-            d="M378.257 15.7463C366.186 -5.24871 336.009 -5.24878 323.938 15.7462L191.624 245.883C179.553 266.878 194.642 293.122 218.783 293.122H483.411C507.553 293.122 522.641 266.878 510.571 245.883L378.257 15.7463Z" />
-        </svg>
-      </div>
-    </section>
-    <!-- icone camada frente -->
-
-    <section class="full-h-section grid-2">
-      <div class="col title-wrapper">
-        <h1>
-          welcome to <span class="bold">pyramidx</span>
-        </h1>
-      </div>
-      <div class="col">
-      </div>
-
-
-    </section>
-  </header>
-
-  <section class="full-h-section">
+  <div class="full-h-section">
     <select name="nm_moeda" id="moeda">
       <option value="null" selected disabled> Selecione uma opção</option>
     </select>
-  </section>
+  </div>
 
 
 
