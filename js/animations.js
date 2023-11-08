@@ -1,7 +1,7 @@
 let maxScroll
 
 document.addEventListener('DOMContentLoaded', () => {
-  console.log('dom has loaded')
+  // console.log('dom has loaded')
 
   const mainIcon = document.querySelector('.clip-bg')
   maxScroll = window.innerHeight

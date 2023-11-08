@@ -36,11 +36,13 @@ body {
 .sticky-wrapper {
   height: 200vh;
   height: 200svh;
+  scroll-snap-type: y proximity;
 }
 
 .sticky-consumer{
   height: 100svh;
   position: sticky;
+  scroll-snap-align: center;
   top: 0;
 }
 
@@ -106,23 +108,30 @@ header {
   transition: transform 100ms ease-in-out;
 }
 
-.title-wrapper {
+.section-wrapper {
   max-width: 1400px;
   margin: 0 auto;
   display: flex;
-  place-items: center;
+  align-items: center;
+  /* border: 2px dotted khaki; */
 }
 
-.title-wrapper h1 {
+.col.content.title {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+  margin-bottom: -2rem;
+}
+
+.section-wrapper h1 {
   font-weight: 500;
   font-size: 6rem;
 }
 
-.title-wrapper p {
-  /* font-family: monospace; */
+.section-wrapper p {
   font-size: 1.2rem;
   line-height: 1.65;
-  max-width: 35ch;
+  max-width: 38ch;
   letter-spacing: 1.05;
 }
 
@@ -130,8 +139,8 @@ header {
 /* util classes */
 .full-h-section{
   height: 100vh;
-  height: 90svh;
-  border: 2px red dotted;
+  height: 100svh;
+  /* border: 2px red dotted; */
 }
 
 .grid-2{
@@ -150,5 +159,13 @@ header {
 .col {
   /* background-color: black; */
   grid-column: span 1;
+}
 
+.col.content {
+  padding: 2rem;
+}
+
+.fix-v-align {
+  display: grid;
+  place-items: center;
 }

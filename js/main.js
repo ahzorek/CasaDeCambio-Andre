@@ -1,5 +1,8 @@
 //initializes generic io
-const currSelect = document.querySelector('#moeda')
+const currencyConverterForm = document.querySelector('.currency-converter')
+const currencyInput = document.querySelector('#currencyInput')
+const currencyOutput = document.querySelector('#currencyOutput')
+const currencySelectFields = [currencyInput, currencyOutput]
 const HTML = document.querySelector('html')
 
 //gets all currency information
@@ -31,7 +34,7 @@ async function getConvertionRate(
   endDate = formatDate(new Date(Date.now()))
 ) {
   const URL = `
-    https://olinda.bcb.gov.br/olinda/servico/PTAX/versao/v1/odata/CotacaoMoedaPeriodo(moeda=@moeda,dataInicial=@dataInicial,dataFinalCotacao=@dataFinalCotacao)?@moeda='${curr}'&@dataInicial='${startDate}'&@dataFinalCotacao='${endDate}'&$top=100&$skip=0&$format=json&$select=cotacaoVenda,dataHoraCotacao,tipoBoletim
+    https://olinda.bcb.gov.br/olinda/servico/PTAX/versao/v1/odata/CotacaoMoedaPeriodo(moeda=@moeda,dataInicial=@dataInicial,dataFinalCotacao=@dataFinalCotacao)?@moeda='${curr}'&@dataInicial='${startDate}'&@dataFinalCotacao='${endDate}'&$top=100&$skip=0&$format=json&$select=cotacaoCompra,cotacaoVenda,dataHoraCotacao,tipoBoletim
   `
   const res = await fetch(URL)
   const data = await res.json()
@@ -61,15 +64,23 @@ function fillConversionRates(currencies) {
 //converter logic
 
 //function from brl to x
-function convertFromBRL(outputCurrency, value = 1) {
-  const rate = currenciesTable.get(outputCurrency).cotacoes.pop().cotacaoVenda
-  return value / rate
+function convertFromBRL(outputCurrency, value = 1, op) {
+  const sellRate = currenciesTable.get(outputCurrency).cotacoes.pop().cotacaoVenda
+  const buyRate = currenciesTable.get(outputCurrency).cotacoes.pop().cotacaoCompra
+  if (op === 'compra') {
+    return value / buyRate
+  }
+  return value / sellRate
 }
 
 //function from x to brl
-function convertToBRL(inputCurrency, value = 1) {
-  const rate = currenciesTable.get(inputCurrency).cotacoes.pop().cotacaoVenda
-  return value * rate
+function convertToBRL(inputCurrency, value = 1, op) {
+  const sellRate = currenciesTable.get(inputCurrency).cotacoes.pop().cotacaoVenda
+  const buyRate = currenciesTable.get(inputCurrency).cotacoes.pop().cotacaoCompra
+  if (op === 'compra') {
+    return value * buyRate
+  }
+  return value * sellRate
 }
 //function from x to y (thru BRL)
 function convertCurrency(inputCurrency, outputCurrency, value = 1) {
@@ -80,27 +91,30 @@ function convertCurrency(inputCurrency, outputCurrency, value = 1) {
   return exitValue
 }
 
-
+//fills the values on the currency select fields
 function createCurrOptions(currencies) {
-  currencies.map(curr => {
-    const option = document.createElement('option')
-    const symbol = formatToCurrencyDisplay(curr.simbolo)
-    option.value = curr.simbolo
-    option.innerHTML = `${curr.nomeFormatado} - ${symbol}`
-
-    currSelect.appendChild(option)
+  currencySelectFields.forEach(field => {
+    currencies.forEach(curr => {
+      const option = document.createElement('option')
+      const symbol = formatToCurrencyDisplay(curr.simbolo)
+      option.value = curr.simbolo
+      option.innerHTML = `${symbol}`
+      field.appendChild(option)
+    })
   })
 
 }
 
-currSelect.addEventListener('change', e => {
-  const resposta = formatToCurrencyDisplay(
-    e.target.value,
-    convertCurrency('USD', e.target.value, 2)
-  )
-
-  // convertCurrency('GBP', 'USD', 1)
-  console.log(resposta)
+//monitors value changes on the currency select inputs
+currencySelectFields.forEach(field => {
+  field.addEventListener('change', e => {
+    const resposta = formatToCurrencyDisplay(
+      e.target.value,
+      convertCurrency('USD', e.target.value, 2)
+    )
+    // convertCurrency('GBP', 'USD', 1)
+    // console.log(resposta)
+  })
 })
 
 //formats date to MM-DD-YYYY
@@ -125,3 +139,31 @@ function formatToCurrencyDisplay(curr, value = NaN) {
 
   return formatted
 }
+
+//handles form
+
+currencyConverterForm.addEventListener('submit', e => {
+  e.preventDefault()
+  // const _f = formatToCurrencyDisplay(
+  //   'BRL',
+  //   e.target.input.value
+  // )
+  // e.target.output.value = _f
+})
+
+currencyConverterForm.input.addEventListener('change', e => {
+  const entryValue = e.target.value
+  e.target.value = formatToCurrencyDisplay(
+    currencyConverterForm.nm_currencyInput.value,
+    entryValue
+  )
+
+  currencyConverterForm.output.value = formatToCurrencyDisplay(
+    currencyConverterForm.nm_currencyOutput.value,
+    convertCurrency(
+      currencyConverterForm.nm_currencyInput.value,
+      currencyConverterForm.nm_currencyOutput.value,
+      entryValue
+    )
+  )
+})
