@@ -1,7 +1,7 @@
 let maxScroll
 
 document.addEventListener('DOMContentLoaded', () => {
-  console.log('dom has loaded');
+  console.log('dom has loaded')
 
   const mainIcon = document.querySelector('.clip-bg')
   maxScroll = window.innerHeight
@@ -30,21 +30,21 @@ window.addEventListener('resize', e => {
 
 function convertToPercentage(value, x) {
   if (value < 0) {
-    return 0;
+    return 0
   } else if (value > x) {
-    return 100;
+    return 100
   } else {
-    return (value / x) * 100;
+    return (value / x) * 100
   }
 }
 
 
 function convertFromPercentage(percentage) {
   if (percentage < 0) {
-    return 100;
+    return 100
   } else if (percentage > 100) {
-    return 350;
+    return 350
   } else {
-    return (percentage / 100) * (350 - 100) + 100;
+    return (percentage / 100) * (350 - 100) + 100
   }
 }

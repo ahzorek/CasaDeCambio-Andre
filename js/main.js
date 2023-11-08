@@ -1,6 +1,6 @@
 //initializes generic io
 const currSelect = document.querySelector('#moeda')
-
+const HTML = document.querySelector('html')
 
 //gets all currency information
 function getCurrencies() {
@@ -25,9 +25,15 @@ getCurrencies()
 
 
 //a function to get a individual currency data (cotação valores)
-async function getConvertionRate(curr, date = formatDate(new Date())) {
-  const url = `https://olinda.bcb.gov.br/olinda/servico/PTAX/versao/v1/odata/CotacaoMoedaDia(moeda=@moeda,dataCotacao=@dataCotacao)?@moeda='${curr}'&@dataCotacao='${date}'&$top=100&$skip=0&$format=json&$select=cotacaoVenda,dataHoraCotacao,tipoBoletim`
-  const res = await fetch(url)
+async function getConvertionRate(
+  curr,
+  startDate = formatDate(new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)),
+  endDate = formatDate(new Date(Date.now()))
+) {
+  const URL = `
+    https://olinda.bcb.gov.br/olinda/servico/PTAX/versao/v1/odata/CotacaoMoedaPeriodo(moeda=@moeda,dataInicial=@dataInicial,dataFinalCotacao=@dataFinalCotacao)?@moeda='${curr}'&@dataInicial='${startDate}'&@dataFinalCotacao='${endDate}'&$top=100&$skip=0&$format=json&$select=cotacaoVenda,dataHoraCotacao,tipoBoletim
+  `
+  const res = await fetch(URL)
   const data = await res.json()
   return data.value
 }
@@ -45,44 +51,77 @@ function fillConversionRates(currencies) {
 
 //a function that save the current state of the object data structure to the localstorage and sets expiration parameters
 
-// a function that checks if there are data saved on localstorage and if data is valid (non expired)
+// a function that checks if there are data saved on localstorage and if data is valid (non stale)
 
 // a function that retrieves the valid localstorage data and parse it to current app state
 
-//a async function that keeps running on background to mantain the data updated
+//an async function that keeps running on background to mantain the data updated
 
 
 //converter logic
 
 //function from brl to x
+function convertFromBRL(outputCurrency, value = 1) {
+  const rate = currenciesTable.get(outputCurrency).cotacoes.pop().cotacaoVenda
+  return value / rate
+}
 
 //function from x to brl
-
-//function from x to y (thru brl)
-
-
-
+function convertToBRL(inputCurrency, value = 1) {
+  const rate = currenciesTable.get(inputCurrency).cotacoes.pop().cotacaoVenda
+  return value * rate
+}
+//function from x to y (thru BRL)
+function convertCurrency(inputCurrency, outputCurrency, value = 1) {
+  const valueBRL = (inputCurrency !== 'BRL')
+    ? convertToBRL(inputCurrency, value)
+    : inputCurrency
+  const exitValue = convertFromBRL(outputCurrency, valueBRL)
+  return exitValue
+}
 
 
 function createCurrOptions(currencies) {
   currencies.map(curr => {
     const option = document.createElement('option')
+    const symbol = formatToCurrencyDisplay(curr.simbolo)
     option.value = curr.simbolo
-    option.innerHTML = curr.nomeFormatado
+    option.innerHTML = `${curr.nomeFormatado} - ${symbol}`
 
     currSelect.appendChild(option)
   })
 
 }
 
-currSelect.addEventListener('change', async e => {
-  const resposta = currenciesTable.get(e.target.value)
+currSelect.addEventListener('change', e => {
+  const resposta = formatToCurrencyDisplay(
+    e.target.value,
+    convertCurrency('USD', e.target.value, 2)
+  )
+
+  // convertCurrency('GBP', 'USD', 1)
   console.log(resposta)
 })
 
+//formats date to MM-DD-YYYY
 function formatDate(date) {
   const month = (date.getMonth() + 1).toString().padStart(2, '0')
   const day = date.getDate().toString().padStart(2, '0')
   const year = date.getFullYear()
   return `${month}-${day}-${year}`
+}
+
+//formats to currency
+function formatToCurrencyDisplay(curr, value = NaN) {
+  const formatted = new Intl.NumberFormat(HTML.lang, {
+    style: 'currency',
+    currency: curr,
+    currencyDisplay: 'symbol',
+  }).format(value)
+
+  if (!value) {
+    return formatted.replace(/\NaN/g, '').trim()
+  }
+
+  return formatted
 }
