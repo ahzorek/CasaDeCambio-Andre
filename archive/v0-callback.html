@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Casa de Câmbio</title>
+</head>
+
+<body>
+  <select name="nm_moeda" id="moeda">
+    <option value="null" selected disabled> Selecione uma opção</option>
+  </select>
+  <script>
+    const currSelect = document.querySelector('#moeda')
+
+    function getCurrencyList(callback) {
+      // AJAX - Make an HTTP request / API consumption
+      var xhr = new XMLHttpRequest()
+
+      const url = `https://olinda.bcb.gov.br/olinda/servico/PTAX/versao/v1/odata/Moedas?$top=100&$skip=0&$format=json&$select=simbolo,nomeFormatado`;
+
+      xhr.open("GET", url)
+
+      xhr.addEventListener("load", function () {
+        let response = xhr.responseText
+        let data = JSON.parse(response)
+
+        callback(data.value)
+      })
+
+      xhr.send()
+    }
+
+    function createCurrOptions(currencies) {
+      currencies.map(curr => {
+        const option = document.createElement('option')
+        option.value = curr.simbolo;
+        option.innerHTML = curr.nomeFormatado
+
+        currSelect.appendChild(option)
+      });
+    }
+
+    getCurrencyList(createCurrOptions)
+
+
+  </script>
+</body>
+
+</html>
