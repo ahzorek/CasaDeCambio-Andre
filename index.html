@@ -77,23 +77,23 @@
           <span class="input-group-text fix-v-align" id="inputGroup-sizing-lg">
             <select name="nm_currencyInput" id="currencyInput" class="form-select form-select-lg"
               aria-label="Select Currency Input">
-              <!-- <option value="null" selected disabled>Selecione uma opção</option> -->
+              <option value="BRL" title="Real Brasileiro">R$</option>
             </select>
           </span>
-          <input type="text" name="input" class="form-control" aria-label="Sizing example input"
+          <input type="number" min="0" step=".5" name="input" class="form-control" aria-label="Sizing example input"
             aria-describedby="inputGroup-sizing-lg">
         </div>
         <div class="input-group input-group-lg">
           <span class="input-group-text" id="inputGroup-sizing-lg">
             <select name="nm_currencyOutput" id="currencyOutput" class="form-select form-select-lg"
               aria-label="Select Currency Output">
-              <!-- <option value="null" selected disabled>Selecione uma opção</option> -->
+              <option value="BRL" title="Real Brasileiro">R$</option>
             </select>
           </span>
           <input id="output" name="output" readonly type="text" class="form-control" aria-label="Sizing example input"
             aria-describedby="inputGroup-sizing-lg">
         </div>
-        <button style="display: none;" type="submit">test it man</button>
+        <button style="display: none;" name="submitBtn" type="submit">test it man</button>
       </form>
     </div>
   </div>

@@ -8,15 +8,15 @@ const HTML = document.querySelector('html')
 //gets all currency information
 function getCurrencies() {
   //AJAX - Fazer uma requisição HTTPs / Consumo de API
-  var xhr = new XMLHttpRequest()
+  const xhr = new XMLHttpRequest()
 
   const url = `https://olinda.bcb.gov.br/olinda/servico/PTAX/versao/v1/odata/Moedas?$top=100&$skip=0&$format=json&$select=simbolo,nomeFormatado`
 
   xhr.open("GET", url)
 
   xhr.addEventListener("load", () => {
-    let resposta = xhr.responseText
-    let data = JSON.parse(resposta)
+    const resposta = xhr.responseText
+    const data = JSON.parse(resposta)
 
     fillConversionRates(data.value)
     createCurrOptions(data.value)
@@ -37,8 +37,8 @@ async function getConvertionRate(
     https://olinda.bcb.gov.br/olinda/servico/PTAX/versao/v1/odata/CotacaoMoedaPeriodo(moeda=@moeda,dataInicial=@dataInicial,dataFinalCotacao=@dataFinalCotacao)?@moeda='${curr}'&@dataInicial='${startDate}'&@dataFinalCotacao='${endDate}'&$top=100&$skip=0&$format=json&$select=cotacaoCompra,cotacaoVenda,dataHoraCotacao,tipoBoletim
   `
   const res = await fetch(URL)
-  const data = await res.json()
-  return data.value
+  const { value } = await res.json()
+  return value
 }
 
 //a data structure (js map) that stores each individual currency data (nome, simbolo e conversion rates)
@@ -50,6 +50,9 @@ function fillConversionRates(currencies) {
     const cotacoes = await getConvertionRate(curr.simbolo)
     currenciesTable.set(curr.simbolo, { ...curr, cotacoes })
   })
+  currenciesTable.set(
+    'BRL', { simbolo: "BRL", nomeFormatado: "Real Brasileiro", cotacoes: [] }
+  )
 }
 
 //a function that save the current state of the object data structure to the localstorage and sets expiration parameters
@@ -64,56 +67,61 @@ function fillConversionRates(currencies) {
 //converter logic
 
 //function from brl to x
-function convertFromBRL(outputCurrency, value = 1, op) {
-  const sellRate = currenciesTable.get(outputCurrency).cotacoes.pop().cotacaoVenda
-  const buyRate = currenciesTable.get(outputCurrency).cotacoes.pop().cotacaoCompra
+function convertFromBRL(outputCurrency, value, op) {
+  const rate = currenciesTable.get(outputCurrency).cotacoes.pop()
   if (op === 'compra') {
-    return value / buyRate
+    return value / rate.cotacaoCompra
   }
-  return value / sellRate
+  return value / rate.cotacaoVenda
 }
 
 //function from x to brl
-function convertToBRL(inputCurrency, value = 1, op) {
-  const sellRate = currenciesTable.get(inputCurrency).cotacoes.pop().cotacaoVenda
-  const buyRate = currenciesTable.get(inputCurrency).cotacoes.pop().cotacaoCompra
+function convertToBRL(inputCurrency, value, op) {
+  const rate = currenciesTable.get(inputCurrency).cotacoes.pop()
+  console.log(rate);
   if (op === 'compra') {
-    return value * buyRate
+    return value * rate.cotacaoCompra
   }
-  return value * sellRate
+  return value * rate.cotacaoVenda
 }
 //function from x to y (thru BRL)
 function convertCurrency(inputCurrency, outputCurrency, value = 1) {
-  const valueBRL = (inputCurrency !== 'BRL')
-    ? convertToBRL(inputCurrency, value)
-    : inputCurrency
-  const exitValue = convertFromBRL(outputCurrency, valueBRL)
-  return exitValue
+  if (inputCurrency === outputCurrency) {
+    return value
+  }
+  else if (outputCurrency === 'BRL') {
+    return convertToBRL(inputCurrency, value, 'compra')
+  }
+  else if (inputCurrency === 'BRL') {
+    return convertFromBRL(outputCurrency, value)
+  }
+  else {
+    return convertFromBRL(
+      outputCurrency,
+      convertToBRL(inputCurrency, value)
+    )
+  }
+
 }
 
 //fills the values on the currency select fields
 function createCurrOptions(currencies) {
   currencySelectFields.forEach(field => {
     currencies.forEach(curr => {
-      const option = document.createElement('option')
       const symbol = formatToCurrencyDisplay(curr.simbolo)
+      const option = document.createElement('option')
+      option.title = curr.nomeFormatado
       option.value = curr.simbolo
-      option.innerHTML = `${symbol}`
+      option.innerHTML = symbol
       field.appendChild(option)
     })
   })
-
 }
 
 //monitors value changes on the currency select inputs
 currencySelectFields.forEach(field => {
   field.addEventListener('change', e => {
-    const resposta = formatToCurrencyDisplay(
-      e.target.value,
-      convertCurrency('USD', e.target.value, 2)
-    )
-    // convertCurrency('GBP', 'USD', 1)
-    // console.log(resposta)
+    currencyConverterForm.submitBtn.click()
   })
 })
 
@@ -122,20 +130,32 @@ function formatDate(date) {
   const month = (date.getMonth() + 1).toString().padStart(2, '0')
   const day = date.getDate().toString().padStart(2, '0')
   const year = date.getFullYear()
+
   return `${month}-${day}-${year}`
 }
 
 //formats to currency
-function formatToCurrencyDisplay(curr, value = NaN) {
+function formatToCurrencyDisplay(curr, value = NaN, symbol = true) {
   const formatted = new Intl.NumberFormat(HTML.lang, {
     style: 'currency',
     currency: curr,
-    currencyDisplay: 'symbol',
+    currencyDisplay: symbol ? 'symbol' : 'code',
   }).format(value)
 
   if (!value) {
     return formatted.replace(/\NaN/g, '').trim()
   }
+  else if (!symbol) {
+    return formatted.replace(curr, '').trim()
+  }
+  else
+    return formatted
+}
+
+function formatToCurrencyNOSymbol(value) {
+  const formatted = new Intl.NumberFormat(HTML.lang, {
+    style: 'decimal'
+  }).format(value)
 
   return formatted
 }
@@ -144,26 +164,21 @@ function formatToCurrencyDisplay(curr, value = NaN) {
 
 currencyConverterForm.addEventListener('submit', e => {
   e.preventDefault()
-  // const _f = formatToCurrencyDisplay(
-  //   'BRL',
-  //   e.target.input.value
-  // )
-  // e.target.output.value = _f
-})
+  const input = currencyConverterForm.input.value
+  const inputCurrencySelected = currencyConverterForm.nm_currencyInput.value
+  const outputCurrencySelected = currencyConverterForm.nm_currencyOutput.value
+  const output = currencyConverterForm.output
 
-currencyConverterForm.input.addEventListener('change', e => {
-  const entryValue = e.target.value
-  e.target.value = formatToCurrencyDisplay(
-    currencyConverterForm.nm_currencyInput.value,
-    entryValue
-  )
-
-  currencyConverterForm.output.value = formatToCurrencyDisplay(
-    currencyConverterForm.nm_currencyOutput.value,
+  output.value = formatToCurrencyDisplay(
+    outputCurrencySelected,
     convertCurrency(
-      currencyConverterForm.nm_currencyInput.value,
-      currencyConverterForm.nm_currencyOutput.value,
-      entryValue
-    )
+      inputCurrencySelected,
+      outputCurrencySelected,
+      input
+    ),
+    false
   )
 })
+
+
+
