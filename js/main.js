@@ -1,12 +1,15 @@
 //initializes generic io
-const currencyConverterForm = document.querySelector('.currency-converter')
+const converterForm = document.querySelector('.currency-converter')
 const currencyInput = document.querySelector('#currencyInput')
 const currencyOutput = document.querySelector('#currencyOutput')
 const currencySelectFields = [currencyInput, currencyOutput]
+const mainCurrencies = ['USD', 'EUR', 'GBP', 'JPY']
+const quotesSlot = document.querySelector('.quotes')
+
 const HTML = document.querySelector('html')
 
-//gets all currency information
-function getCurrencies() {
+//starts the logic, gets all currency information
+document.addEventListener('DOMContentLoaded', () => {
   //AJAX - Fazer uma requisição HTTPs / Consumo de API
   const xhr = new XMLHttpRequest()
 
@@ -18,19 +21,23 @@ function getCurrencies() {
     const resposta = xhr.responseText
     const data = JSON.parse(resposta)
 
-    fillConversionRates(data.value)
-    createCurrOptions(data.value)
+    const currencies = [
+      { simbolo: "BRL", nomeFormatado: "Real Brasileiro" },
+      ...data.value
+    ]
+
+    createCurrOptions(currencies)
+    fillConversionRates(currencies)
+
   })
   xhr.send()
-}
-///executes
-getCurrencies()
 
+})
 
 //a function to get a individual currency data (cotação valores)
 async function getConvertionRate(
   curr,
-  startDate = formatDate(new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)),
+  startDate = formatDate(new Date(Date.now() - (7 * 24 * 60 * 60 * 1000))),
   endDate = formatDate(new Date(Date.now()))
 ) {
   const URL = `
@@ -45,14 +52,23 @@ async function getConvertionRate(
 const currenciesTable = new Map()
 
 //a repetition structure that gets each conversion rate and stores it in the data structure
-function fillConversionRates(currencies) {
-  currencies.forEach(async curr => {
-    const cotacoes = await getConvertionRate(curr.simbolo)
-    currenciesTable.set(curr.simbolo, { ...curr, cotacoes })
+async function fillConversionRates(currencies) {
+  const conversionPromises = currencies.map(async (curr) => {
+    if (curr.simbolo !== 'BRL') {
+      const cotacoes = await getConvertionRate(curr.simbolo)
+      currenciesTable.set(curr.simbolo, { ...curr, cotacoes })
+    }
   })
+
+  await Promise.all(conversionPromises)
+
+  mainCurrencies.map((curr) => createQuoteBlocks(curr, currenciesTable))
+
   currenciesTable.set(
-    'BRL', { simbolo: "BRL", nomeFormatado: "Real Brasileiro", cotacoes: [] }
+    'BRL',
+    { simbolo: 'BRL', nomeFormatado: 'Real Brasileiro', cotacoes: [] }
   )
+
 }
 
 //a function that save the current state of the object data structure to the localstorage and sets expiration parameters
@@ -68,7 +84,9 @@ function fillConversionRates(currencies) {
 
 //function from brl to x
 function convertFromBRL(outputCurrency, value, op) {
-  const rate = currenciesTable.get(outputCurrency).cotacoes.pop()
+  const arr = currenciesTable.get(outputCurrency).cotacoes
+  const rate = arr[arr.length - 1]
+  console.log('VERIFICANDO', rate)
   if (op === 'compra') {
     return value / rate.cotacaoCompra
   }
@@ -77,8 +95,9 @@ function convertFromBRL(outputCurrency, value, op) {
 
 //function from x to brl
 function convertToBRL(inputCurrency, value, op) {
-  const rate = currenciesTable.get(inputCurrency).cotacoes.pop()
-  console.log(rate);
+  const arr = currenciesTable.get(inputCurrency).cotacoes
+  const rate = arr[arr.length - 1]
+  console.log('VERIFICANDO', rate)
   if (op === 'compra') {
     return value * rate.cotacaoCompra
   }
@@ -86,7 +105,10 @@ function convertToBRL(inputCurrency, value, op) {
 }
 //function from x to y (thru BRL)
 function convertCurrency(inputCurrency, outputCurrency, value = 1) {
-  if (inputCurrency === outputCurrency) {
+  if (!inputCurrency | !outputCurrency) {
+    console.error('Issues with convertCurrency params')
+  }
+  else if (inputCurrency === outputCurrency) {
     return value
   }
   else if (outputCurrency === 'BRL') {
@@ -108,7 +130,7 @@ function convertCurrency(inputCurrency, outputCurrency, value = 1) {
 function createCurrOptions(currencies) {
   currencySelectFields.forEach(field => {
     currencies.forEach(curr => {
-      const symbol = formatToCurrencyDisplay(curr.simbolo)
+      const symbol = getCurrencyFormat(curr.simbolo)
       const option = document.createElement('option')
       option.title = curr.nomeFormatado
       option.value = curr.simbolo
@@ -118,11 +140,16 @@ function createCurrOptions(currencies) {
   })
 }
 
-//monitors value changes on the currency select inputs
+//monitors value changes on the currency select inputs, fires side effects if needed
 currencySelectFields.forEach(field => {
-  field.addEventListener('change', e => {
-    currencyConverterForm.submitBtn.click()
+  field.addEventListener('change', () => {
+    converterForm.submit.click()
   })
+})
+
+//monitors value changes on the value input, fires side effects if needed
+converterForm.input.addEventListener('keyup', e => {
+  converterForm.submit.click()
 })
 
 //formats date to MM-DD-YYYY
@@ -135,7 +162,7 @@ function formatDate(date) {
 }
 
 //formats to currency
-function formatToCurrencyDisplay(curr, value = NaN, symbol = true) {
+function getCurrencyFormat(curr, value = NaN, symbol = true) {
   const formatted = new Intl.NumberFormat(HTML.lang, {
     style: 'currency',
     currency: curr,
@@ -152,33 +179,60 @@ function formatToCurrencyDisplay(curr, value = NaN, symbol = true) {
     return formatted
 }
 
-function formatToCurrencyNOSymbol(value) {
-  const formatted = new Intl.NumberFormat(HTML.lang, {
-    style: 'decimal'
-  }).format(value)
-
-  return formatted
-}
-
-//handles form
-
-currencyConverterForm.addEventListener('submit', e => {
+//handles converter form logic
+converterForm.addEventListener('submit', e => {
   e.preventDefault()
-  const input = currencyConverterForm.input.value
-  const inputCurrencySelected = currencyConverterForm.nm_currencyInput.value
-  const outputCurrencySelected = currencyConverterForm.nm_currencyOutput.value
-  const output = currencyConverterForm.output
+  const input = converterForm.input.value
+  const inputCurrencySelected = converterForm.nm_currencyInput.value
+  const outputCurrencySelected = converterForm.nm_currencyOutput.value
+  const output = converterForm.output
 
-  output.value = formatToCurrencyDisplay(
+  output.value = getCurrencyFormat(
     outputCurrencySelected,
     convertCurrency(
       inputCurrencySelected,
       outputCurrencySelected,
       input
     ),
-    false
+    false //passing false here so we dont get the symbol right next to the value, cause the select field should already be displaying it
   )
 })
 
 
 
+//side bar with main currency rates
+function createQuoteBlocks(curr, table) {
+  // console.log('create quote gets::::',
+  //   curr,
+  //   table
+  // )
+  const currInfo = table.get(curr)
+  const currName = currInfo.nomeFormatado
+  const currSymb = getCurrencyFormat(currInfo.simbolo)
+  const quoteArr = currInfo.cotacoes
+  const latestQuote = quoteArr[quoteArr.length - 1]
+  const latestSellQuote = getCurrencyFormat(
+    currInfo.simbolo,
+    latestQuote.cotacaoVenda,
+    false
+  )
+
+  const block = document.createElement('div')
+  block.setAttribute('class', 'quote rounded-2')
+
+  block.innerHTML = `
+      <div class="quote rounded-2">
+      <div class="top">
+        <span>${currName}</span>
+      </div>
+      <div class="mid">
+        <span>${latestSellQuote}</span>
+      </div>
+      <div class="bottom">
+        <span class="symbol">${currSymb}</span>
+        <span class="trending-icon">icon</span>
+      </div>
+    </div>
+  `
+  quotesSlot.appendChild(block)
+}

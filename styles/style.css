@@ -17,6 +17,7 @@
   --primary: rgb(196, 255, 97);
   --secondary: rgb(36, 40, 40);
   --accent: rgb(234, 255, 199);
+  --accent_op60: rgb(234 255 199 / .6);
 }
 
 html {
@@ -168,4 +169,139 @@ header {
 .fix-v-align {
   display: grid;
   place-items: center;
+}
+
+.prim-bg {
+  background-color: var(--primary);
+}
+
+.default-bg {
+  background-color: rgb(0 0 0);
+}
+
+.custom-grid{
+  display: grid;
+  min-height: 100%;
+  gap: 1rem;
+  grid-template-rows: 2fr 2fr 2fr 2fr 1fr;
+  /* grid-template-columns: repeat(4, 1fr); */
+  grid-template-areas: 
+  "header header header quotes"
+  "form form form quotes"
+  "form form form quotes"
+  "form form form quotes"
+  "info info info info";
+  overflow: hidden;
+}
+
+.custom-input {
+  border: none;
+  background-color: transparent;
+  font-size: 2rem;
+}
+
+.custom-input:focus, .custom-input:focus-visible {
+  box-shadow: 0 0 0 .25rem var(--accent_op60);
+;
+}
+
+.header {
+  grid-area: header;
+  /* background-color: var(--secondary); */
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+}
+
+.logo-wrapper {
+  background-color: var(--background);
+  width: max-content;
+  height: 100%;
+  padding: 2rem;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+}
+
+form {
+  grid-area: form;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-evenly;
+  gap: 1rem;
+  height: 100%;
+}
+
+.curr-block {
+  background-color: var(--background);
+  height: 100%;
+}
+
+.quotes {
+  grid-area: quotes;
+  display: grid;
+  grid-template-rows: subgrid;
+  /* border: 1px red dotted; */
+}
+
+.quote {
+  grid-row: span 1;
+  min-height: 1fr;
+  min-width: 200px;
+  background-color: var(--secondary); 
+  display: flex;
+  flex-direction: column;
+  justify-content: space-around; 
+  font-size: .925rem;
+  padding-inline: 1rem;
+}
+
+.top {
+  display: flex;
+  justify-content: flex-start;
+}
+
+.mid {
+  display: grid;
+  place-items: center;
+  font-size: 2.6rem;
+  font-weight: 800;
+}
+
+.bottom {
+  display: flex;
+  justify-content: space-between;
+}
+
+.symbol {
+
+}
+
+.trending-icon {
+
+}
+
+.info {
+  grid-area: info;
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+  padding-inline: 1rem;  
+  /* border: 2px dashed pink; */
+  color: var(--secondary);
+}
+
+.novis {
+  display: none;
+}
+
+#input, #output{
+  font-size: 7.5rem;
+  -moz-appearance: textfield;
+  appearance: textfield;
+}
+
+input::-webkit-outer-spin-button,
+input::-webkit-inner-spin-button {
+    -webkit-appearance: none;
 }
