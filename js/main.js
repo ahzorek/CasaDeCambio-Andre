@@ -1,12 +1,25 @@
+/*
+  Nome do Script: CurrencyConverter (for pyramidx)
+  Descrição: Esse app realiza conversões de moedas usando como fonte a API de cotações do Banco Central do Brasil
+
+  Versão: 0.1 
+  Autor: Andre
+
+  Histórico de Versões:
+  - v0.1 (10/11/2023)
+    - Implementa as funcionalidades básicas do APP e sua primeira versão de interface visual.
+*/
+
 //initializes generic io
 const converterForm = document.querySelector('.currency-converter')
 const currencyInput = document.querySelector('#currencyInput')
 const currencyOutput = document.querySelector('#currencyOutput')
 const currencySelectFields = [currencyInput, currencyOutput]
-const mainCurrencies = ['USD', 'EUR', 'GBP', 'JPY']
+const mainCurrencies = ['USD', 'EUR', 'GBP', 'DKK']
 const quotesSlot = document.querySelector('.quotes')
+const infoSlot = document.querySelector('.info')
 
-const HTML = document.querySelector('html')
+let newestData
 
 //starts the logic, gets all currency information
 document.addEventListener('DOMContentLoaded', () => {
@@ -57,12 +70,16 @@ async function fillConversionRates(currencies) {
     if (curr.simbolo !== 'BRL') {
       const cotacoes = await getConvertionRate(curr.simbolo)
       currenciesTable.set(curr.simbolo, { ...curr, cotacoes })
+      newestData = cotacoes.pop()
     }
   })
 
   await Promise.all(conversionPromises)
 
+
   mainCurrencies.map((curr) => createQuoteBlocks(curr, currenciesTable))
+
+  infoSlot.innerHTML = fillsLastRetrievedData(newestData)
 
   currenciesTable.set(
     'BRL',
@@ -86,7 +103,7 @@ async function fillConversionRates(currencies) {
 function convertFromBRL(outputCurrency, value, op) {
   const arr = currenciesTable.get(outputCurrency).cotacoes
   const rate = arr[arr.length - 1]
-  console.log('VERIFICANDO', rate)
+  // console.log('VERIFICANDO', rate)
   if (op === 'compra') {
     return value / rate.cotacaoCompra
   }
@@ -97,12 +114,13 @@ function convertFromBRL(outputCurrency, value, op) {
 function convertToBRL(inputCurrency, value, op) {
   const arr = currenciesTable.get(inputCurrency).cotacoes
   const rate = arr[arr.length - 1]
-  console.log('VERIFICANDO', rate)
+  // console.log('VERIFICANDO', rate)
   if (op === 'compra') {
     return value * rate.cotacaoCompra
   }
   return value * rate.cotacaoVenda
 }
+
 //function from x to y (thru BRL)
 function convertCurrency(inputCurrency, outputCurrency, value = 1) {
   if (!inputCurrency | !outputCurrency) {
@@ -163,7 +181,7 @@ function formatDate(date) {
 
 //formats to currency
 function getCurrencyFormat(curr, value = NaN, symbol = true) {
-  const formatted = new Intl.NumberFormat(HTML.lang, {
+  const formatted = new Intl.NumberFormat(Document.lang, {
     style: 'currency',
     currency: curr,
     currencyDisplay: symbol ? 'symbol' : 'code',
@@ -200,17 +218,23 @@ converterForm.addEventListener('submit', e => {
 
 
 
+//fires side effects when clicking one of the quotes blocks
+const triggerQuote = el => {
+  currencyOutput.value = el.id
+  converterForm.submit.click()
+}
+
 //side bar with main currency rates
 function createQuoteBlocks(curr, table) {
-  // console.log('create quote gets::::',
-  //   curr,
-  //   table
-  // )
   const currInfo = table.get(curr)
   const currName = currInfo.nomeFormatado
   const currSymb = getCurrencyFormat(currInfo.simbolo)
   const quoteArr = currInfo.cotacoes
   const latestQuote = quoteArr[quoteArr.length - 1]
+  const comparingQuote = quoteArr[quoteArr.length - 10]
+  const variation = latestQuote.cotacaoVenda - comparingQuote.cotacaoVenda
+  const icon = (variation > 0) ? trendingUp : trendingDown
+
   const latestSellQuote = getCurrencyFormat(
     currInfo.simbolo,
     latestQuote.cotacaoVenda,
@@ -219,20 +243,55 @@ function createQuoteBlocks(curr, table) {
 
   const block = document.createElement('div')
   block.setAttribute('class', 'quote rounded-2')
+  block.setAttribute('id', currInfo.simbolo)
+
+  if (variation > 0) {
+    block.classList.add('trending-up')
+  } else {
+    block.classList.add('trending-down')
+  }
+
+  block.onclick = triggerQuote.bind(null, block) // https://youtu.be/wbQLEXg_urE?si=P5u_7bo3MFu3UlZk
 
   block.innerHTML = `
-      <div class="quote rounded-2">
-      <div class="top">
-        <span>${currName}</span>
-      </div>
-      <div class="mid">
-        <span>${latestSellQuote}</span>
-      </div>
-      <div class="bottom">
-        <span class="symbol">${currSymb}</span>
-        <span class="trending-icon">icon</span>
-      </div>
+    <div class="top">
+    <span>${currName}</span>
     </div>
-  `
+    <div class="mid">
+    <span>${latestSellQuote}</span>
+    </div>
+    <div class="bottom">
+    <span class="symbol">${currSymb}</span>
+    <span class="trending-icon">
+    ${icon}
+    </span>
+    </div>
+    `
   quotesSlot.appendChild(block)
 }
+
+function formatDateString(dateString) {
+  return new Date(dateString).toLocaleString()
+}
+
+function fillsLastRetrievedData(data) {
+  const { tipoBoletim, dataHoraCotacao } = data
+  const date = formatDateString(dataHoraCotacao)
+  const text = `
+  Os dados dessa página foram gerados em ${date} no boletim tipo ${tipoBoletim}.`
+
+  return text
+}
+
+//icons
+const trendingUp = `
+    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" class="bi bi-graph-up-arrow" viewBox="0 0 16 16">
+      <path fill-rule="evenodd" d="M0 0h1v15h15v1H0V0Zm10 3.5a.5.5 0 0 1 .5-.5h4a.5.5 0 0 1 .5.5v4a.5.5 0 0 1-1 0V4.9l-3.613 4.417a.5.5 0 0 1-.74.037L7.06 6.767l-3.656 5.027a.5.5 0 0 1-.808-.588l4-5.5a.5.5 0 0 1 .758-.06l2.609 2.61L13.445 4H10.5a.5.5 0 0 1-.5-.5Z"/>
+    </svg>
+  `
+const trendingDown = `
+    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" class="bi bi-graph-down-arrow" viewBox="0 0 16 16">
+      <path fill-rule="evenodd" d="M0 0h1v15h15v1H0V0Zm10 11.5a.5.5 0 0 0 .5.5h4a.5.5 0 0 0 .5-.5v-4a.5.5 0 0 0-1 0v2.6l-3.613-4.417a.5.5 0 0 0-.74-.037L7.06 8.233 3.404 3.206a.5.5 0 0 0-.808.588l4 5.5a.5.5 0 0 0 .758.06l2.609-2.61L13.445 11H10.5a.5.5 0 0 0-.5.5Z"/>
+    </svg>
+  `
+
