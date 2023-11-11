@@ -2,12 +2,14 @@
   Nome do Script: CurrencyConverter (for pyramidx)
   Descrição: Esse app realiza conversões de moedas usando como fonte a API de cotações do Banco Central do Brasil
 
-  Versão: 0.1 
+  Versão: 0.2
   Autor: Andre
 
   Histórico de Versões:
   - v0.1 (10/11/2023)
     - Implementa as funcionalidades básicas do APP e sua primeira versão de interface visual.
+  - v0.2 (11/11/2023)
+    - Implementa responsividade na interface.
 */
 
 //initializes generic io
@@ -203,9 +205,9 @@ converterForm.addEventListener('submit', e => {
   const input = converterForm.input.value
   const inputCurrencySelected = converterForm.nm_currencyInput.value
   const outputCurrencySelected = converterForm.nm_currencyOutput.value
-  const output = converterForm.output
+  const output = document.querySelector('#output')
 
-  output.value = getCurrencyFormat(
+  output.innerText = getCurrencyFormat(
     outputCurrencySelected,
     convertCurrency(
       inputCurrencySelected,

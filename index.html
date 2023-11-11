@@ -14,12 +14,12 @@
 </head>
 
 <body>
-  <div class="full-h-section prim-bg p-2">
-    <div class="container-fluid default-bg shadow rounded-4 p-4 custom-grid ">
+  <div class="min-vh-100 p-2 frame">
+    <div class="container-fluid shadow rounded-4 p-4 black-bg custom-grid ">
       <div class="header">
         <div class="logo-wrapper rounded-2">
           <h1 title="pyramidx exchange">
-            <svg width="228" height="64" viewBox="0 0 228 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <svg id="logo" viewBox="0 0 228 64" xmlns="http://www.w3.org/2000/svg">
               <g clip-path="url(#clip0_49_2)">
                 <rect width="228" height="64" />
                 <path
@@ -81,7 +81,7 @@
               <!-- ___________ -->
             </select>
           </span>
-          <input id="input" placeholder="69,90" autocomplete="off" type="number" min="0" step=".01" name="input"
+          <input id="input" placeholder="259,00" autocomplete="off" type="number" min="0" step=".01" name="input"
             class="form-control custom-input">
         </div>
         <div class="input-group input-group-lg curr-block rounded-2">
@@ -91,7 +91,7 @@
               <!-- __________ -->
             </select>
           </span>
-          <input readonly id="output" name="output" type="text" class="form-control custom-input">
+          <output readonly id="output" name="output" type="text" class="form-control custom-input">
         </div>
         <button class="novis" name="submit" type="submit">hello you</button>
       </form>
