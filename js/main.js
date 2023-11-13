@@ -2,7 +2,7 @@
   Nome do Script: CurrencyConverter (for pyramidx)
   Descrição: Esse app realiza conversões de moedas usando como fonte a API de cotações do Banco Central do Brasil
 
-  Versão: 0.2
+  Versão: 0.3
   Autor: Andre
 
   Histórico de Versões:
@@ -10,6 +10,8 @@
     - Implementa as funcionalidades básicas do APP e sua primeira versão de interface visual.
   - v0.2 (11/11/2023)
     - Implementa responsividade na interface.
+  - v0.3 (13/11/2023)
+    - Implementa adição de alguns efeitos visuais e melhora acessibilidade de alguns elementos.
 */
 
 //initializes generic io
@@ -246,6 +248,7 @@ function createQuoteBlocks(curr, table) {
   const block = document.createElement('div')
   block.setAttribute('class', 'quote rounded-2')
   block.setAttribute('id', currInfo.simbolo)
+  block.setAttribute('title', `Usar ${currInfo.simbolo} como moeda de saída`)
 
   if (variation > 0) {
     block.classList.add('trending-up')
@@ -257,30 +260,27 @@ function createQuoteBlocks(curr, table) {
 
   block.innerHTML = `
     <div class="top">
-    <span>${currName}</span>
+      <span>${currName}</span>
     </div>
     <div class="mid">
-    <span>${latestSellQuote}</span>
+      <span>${latestSellQuote}</span>
     </div>
     <div class="bottom">
-    <span class="symbol">${currSymb}</span>
-    <span class="trending-icon">
-    ${icon}
-    </span>
+      <span class="symbol">${currSymb}</span>
+      <span class="trending-icon">
+        ${icon}
+      </span>
     </div>
-    `
+  `
   quotesSlot.appendChild(block)
-}
-
-function formatDateString(dateString) {
-  return new Date(dateString).toLocaleString()
 }
 
 function fillsLastRetrievedData(data) {
   const { tipoBoletim, dataHoraCotacao } = data
-  const date = formatDateString(dataHoraCotacao)
+  const date = new Date(dataHoraCotacao).toLocaleString()
   const text = `
-  Os dados dessa página foram gerados em ${date} no boletim tipo ${tipoBoletim}.`
+    Os dados dessa página foram gerados em ${date} no boletim tipo ${tipoBoletim}.
+  `
 
   return text
 }
