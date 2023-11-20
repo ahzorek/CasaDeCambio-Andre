@@ -2,7 +2,7 @@
   Nome do Script: CurrencyConverter (for pyramidx)
   Descrição: Esse app realiza conversões de moedas usando como fonte a API de cotações do Banco Central do Brasil
 
-  Versão: 0.3
+  Versão: 0.4
   Autor: Andre
 
   Histórico de Versões:
@@ -12,6 +12,13 @@
     - Implementa responsividade na interface.
   - v0.3 (13/11/2023)
     - Implementa adição de alguns efeitos visuais e melhora acessibilidade de alguns elementos.
+  - v0.4 (19/11/2023)
+    - Alterações no fluxo de execuçõ inicial do app. 
+        Substitui uso de XHR por fetch. 
+        Implementa um fluxo logico sequencial para toda inicialização.
+        Reestrutura para que cada fn() executa apenas uma 'função geral', um objetivo.
+        Implementa um tratamento de erros bem básico na execução inicial do app.
+        Elimina redundancias nas chamadas de determinadas fn() e criação de valores.
 */
 
 //initializes generic io
@@ -23,73 +30,92 @@ const mainCurrencies = ['USD', 'EUR', 'GBP', 'DKK']
 const quotesSlot = document.querySelector('.quotes')
 const infoSlot = document.querySelector('.info')
 
-let newestData
+//a data structure (JS Map) that stores each individual currency data (nome, abbrev, simbolo e conversion rates)
+const currenciesTable = new Map()
+currenciesTable.set(
+  'BRL',
+  { simbolo: 'BRL', symbol: 'R$', nomeFormatado: 'Real Brasileiro', cotacoes: null }
+)
 
-//starts the logic, gets all currency information
-document.addEventListener('DOMContentLoaded', () => {
-  //AJAX - Fazer uma requisição HTTPs / Consumo de API
-  const xhr = new XMLHttpRequest()
+// app starting logic
+document.addEventListener('DOMContentLoaded', async () => {
+  try {
+    // list with all currencies available on the api
+    const currencies = await fetchInitialValues()
 
-  const url = `https://olinda.bcb.gov.br/olinda/servico/PTAX/versao/v1/odata/Moedas?$top=100&$skip=0&$format=json&$select=simbolo,nomeFormatado`
+    // fetches all most recent data for each currency (defaults for the last 7 days) and stores it
+    await createCurrenciesTable(currencies)
 
-  xhr.open("GET", url)
+    // using the currencyTable JS Map object, fills the select input fields with currency data
+    createCurrOptionsFromMap(currenciesTable)
 
-  xhr.addEventListener("load", () => {
-    const resposta = xhr.responseText
-    const data = JSON.parse(resposta)
+    // creates a ref to the latest 'cotacoes' object fetched
+    const latestDataSourced = Array.from(currenciesTable.entries())[1][1].cotacoes
 
-    const currencies = [
-      { simbolo: "BRL", nomeFormatado: "Real Brasileiro" },
-      ...data.value
-    ]
+    // passes the most recent data from 'cotacoes' so this info is shown on the footer
+    fillsLastRetrievedData(latestDataSourced[latestDataSourced.length - 1])
 
-    createCurrOptions(currencies)
-    fillConversionRates(currencies)
+    // using the currencyTable JS Map object, fills the aside block with 4 commonly used currencies and its info
+    mainCurrencies.map((curr) => createQuoteBlocks(curr, currenciesTable))
 
-  })
-  xhr.send()
-
+    // prints to console :D
+    console.log('app inicializado')
+  } catch (error) {
+    console.error('ocorreu um erro na inicialização do app. tente novamente mais tarde:', error)
+    //fazer alguma coisa no front p esse erro
+  }
 })
 
-//a function to get a individual currency data (cotação valores)
+
+async function fetchInitialValues() {
+  const url = `https://olinda.bcb.gov.br/olinda/servico/PTAX/versao/v1/odata/Moedas?$top=100&$skip=0&$format=json&$select=simbolo,nomeFormatado`
+  const res = await fetch(url)
+  const { value } = await res.json()
+
+  return value
+}
+
+//a repetition structure that gets each conversion rate and stores it in the data structure
+async function createCurrenciesTable(currencies) {
+  const conversionPromises = currencies.map(async curr => {
+
+    const cotacoes = await getConvertionRate(curr.simbolo)
+    const symbol = getCurrencyFormat(curr.simbolo)
+    currenciesTable.set(curr.simbolo, { ...curr, symbol, cotacoes })
+  })
+
+  await Promise.all(conversionPromises)
+}
+
+//a function to get an individual currency data (cotação valores)
 async function getConvertionRate(
   curr,
-  startDate = formatDate(new Date(Date.now() - (7 * 24 * 60 * 60 * 1000))),
-  endDate = formatDate(new Date(Date.now()))
+  startDate = formatDate(new Date(Date.now() - (7 * 24 * 60 * 60 * 1000))), //defaults to 7 days ago
+  endDate = formatDate(new Date(Date.now())) // defaults to now
 ) {
   const URL = `
     https://olinda.bcb.gov.br/olinda/servico/PTAX/versao/v1/odata/CotacaoMoedaPeriodo(moeda=@moeda,dataInicial=@dataInicial,dataFinalCotacao=@dataFinalCotacao)?@moeda='${curr}'&@dataInicial='${startDate}'&@dataFinalCotacao='${endDate}'&$top=100&$skip=0&$format=json&$select=cotacaoCompra,cotacaoVenda,dataHoraCotacao,tipoBoletim
   `
   const res = await fetch(URL)
   const { value } = await res.json()
+
   return value
 }
 
-//a data structure (js map) that stores each individual currency data (nome, simbolo e conversion rates)
-const currenciesTable = new Map()
+//fills the values on the currency select fields
+function createCurrOptionsFromMap(table) {
 
-//a repetition structure that gets each conversion rate and stores it in the data structure
-async function fillConversionRates(currencies) {
-  const conversionPromises = currencies.map(async (curr) => {
-    if (curr.simbolo !== 'BRL') {
-      const cotacoes = await getConvertionRate(curr.simbolo)
-      currenciesTable.set(curr.simbolo, { ...curr, cotacoes })
-      newestData = cotacoes.pop()
-    }
+  currencySelectFields.forEach(field => {
+
+    Array.from(table.entries()).forEach(([_, curr]) => {
+      const option = document.createElement('option')
+      option.title = curr.nomeFormatado
+      option.value = curr.simbolo
+      option.innerHTML = curr.symbol
+
+      field.appendChild(option)
+    })
   })
-
-  await Promise.all(conversionPromises)
-
-
-  mainCurrencies.map((curr) => createQuoteBlocks(curr, currenciesTable))
-
-  infoSlot.innerHTML = fillsLastRetrievedData(newestData)
-
-  currenciesTable.set(
-    'BRL',
-    { simbolo: 'BRL', nomeFormatado: 'Real Brasileiro', cotacoes: [] }
-  )
-
 }
 
 //a function that save the current state of the object data structure to the localstorage and sets expiration parameters
@@ -146,20 +172,6 @@ function convertCurrency(inputCurrency, outputCurrency, value = 1) {
     )
   }
 
-}
-
-//fills the values on the currency select fields
-function createCurrOptions(currencies) {
-  currencySelectFields.forEach(field => {
-    currencies.forEach(curr => {
-      const symbol = getCurrencyFormat(curr.simbolo)
-      const option = document.createElement('option')
-      option.title = curr.nomeFormatado
-      option.value = curr.simbolo
-      option.innerHTML = symbol
-      field.appendChild(option)
-    })
-  })
 }
 
 //monitors value changes on the currency select inputs, fires side effects if needed
@@ -220,19 +232,15 @@ converterForm.addEventListener('submit', e => {
   )
 })
 
-
-
 //fires side effects when clicking one of the quotes blocks
-const triggerQuote = el => {
-  currencyOutput.value = el.id
+const triggerQuoteByEvent = currSymb => {
+  currencyOutput.value = currSymb
   converterForm.submit.click()
 }
 
 //side bar with main currency rates
 function createQuoteBlocks(curr, table) {
   const currInfo = table.get(curr)
-  const currName = currInfo.nomeFormatado
-  const currSymb = getCurrencyFormat(currInfo.simbolo)
   const quoteArr = currInfo.cotacoes
   const latestQuote = quoteArr[quoteArr.length - 1]
   const comparingQuote = quoteArr[quoteArr.length - 10]
@@ -249,6 +257,7 @@ function createQuoteBlocks(curr, table) {
   block.setAttribute('class', 'quote rounded-2')
   block.setAttribute('id', currInfo.simbolo)
   block.setAttribute('title', `Usar ${currInfo.simbolo} como moeda de saída`)
+  block.addEventListener('click', () => triggerQuoteByEvent(block.id))
 
   if (variation > 0) {
     block.classList.add('trending-up')
@@ -256,17 +265,15 @@ function createQuoteBlocks(curr, table) {
     block.classList.add('trending-down')
   }
 
-  block.onclick = triggerQuote.bind(null, block) // https://youtu.be/wbQLEXg_urE?si=P5u_7bo3MFu3UlZk
-
   block.innerHTML = `
     <div class="top">
-      <span>${currName}</span>
+      <span>${currInfo.nomeFormatado}</span>
     </div>
     <div class="mid">
       <span>${latestSellQuote}</span>
     </div>
     <div class="bottom">
-      <span class="symbol">${currSymb}</span>
+      <span class="symbol">${currInfo.symbol}</span>
       <span class="trending-icon">
         ${icon}
       </span>
@@ -281,8 +288,7 @@ function fillsLastRetrievedData(data) {
   const text = `
     Os dados dessa página foram gerados em ${date} no boletim tipo ${tipoBoletim}.
   `
-
-  return text
+  infoSlot.innerHTML = text
 }
 
 //icons

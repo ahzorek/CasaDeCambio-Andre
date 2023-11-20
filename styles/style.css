@@ -82,6 +82,7 @@ body {
   border: none;
   background-color: transparent;
   font-size: 1.25rem;
+  height: 100%;
 }
 
 .custom-input:focus, .custom-input:focus-visible {
