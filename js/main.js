@@ -19,6 +19,8 @@
         Reestrutura para que cada fn() executa apenas uma 'função geral', um objetivo.
         Implementa um tratamento de erros bem básico na execução inicial do app.
         Elimina redundancias nas chamadas de determinadas fn() e criação de valores.
+  - v0.4.1
+    - quick fix na chamada de valores de compra e venda (thx ana)
 */
 
 //initializes generic io
@@ -58,7 +60,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     // using the currencyTable JS Map object, fills the aside block with 4 commonly used currencies and its info
     mainCurrencies.map((curr) => createQuoteBlocks(curr, currenciesTable))
 
-    // prints to console :D
     console.log('app inicializado')
   } catch (error) {
     console.error('ocorreu um erro na inicialização do app. tente novamente mais tarde:', error)
@@ -118,37 +119,32 @@ function createCurrOptionsFromMap(table) {
   })
 }
 
-//a function that save the current state of the object data structure to the localstorage and sets expiration parameters
+// a function that save the current state of the object data structure to the localstorage and sets expiration parameters
 
 // a function that checks if there are data saved on localstorage and if data is valid (non stale)
 
 // a function that retrieves the valid localstorage data and parse it to current app state
 
-//an async function that keeps running on background to mantain the data updated
+// an async function that keeps running on background to mantain the data updated
 
 
 //converter logic
 
 //function from brl to x
-function convertFromBRL(outputCurrency, value, op) {
+function convertFromBRL(outputCurrency, value) {
   const arr = currenciesTable.get(outputCurrency).cotacoes
   const rate = arr[arr.length - 1]
   // console.log('VERIFICANDO', rate)
-  if (op === 'compra') {
-    return value / rate.cotacaoCompra
-  }
   return value / rate.cotacaoVenda
 }
 
 //function from x to brl
-function convertToBRL(inputCurrency, value, op) {
+function convertToBRL(inputCurrency, value) {
   const arr = currenciesTable.get(inputCurrency).cotacoes
   const rate = arr[arr.length - 1]
   // console.log('VERIFICANDO', rate)
-  if (op === 'compra') {
-    return value * rate.cotacaoCompra
-  }
-  return value * rate.cotacaoVenda
+  return value * rate.cotacaoCompra
+
 }
 
 //function from x to y (thru BRL)
@@ -160,15 +156,16 @@ function convertCurrency(inputCurrency, outputCurrency, value = 1) {
     return value
   }
   else if (outputCurrency === 'BRL') {
-    return convertToBRL(inputCurrency, value, 'compra')
+    return convertToBRL(inputCurrency, value)
   }
   else if (inputCurrency === 'BRL') {
     return convertFromBRL(outputCurrency, value)
   }
   else {
+    //converte para moeda de saida usando como input o retorno do valor de entrada convertido para real
     return convertFromBRL(
       outputCurrency,
-      convertToBRL(inputCurrency, value)
+      convertToBRL(inputCurrency, value) //converte o valor da moeda de entrada para real
     )
   }
 
